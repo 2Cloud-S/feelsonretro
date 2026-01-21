@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Static export for Cloudflare Pages
+  output: 'export',
+
   // Allow images from news sources
   images: {
     remotePatterns: [
@@ -9,27 +12,11 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    unoptimized: true,
   },
 
-  // Optimize for edge deployment
-  experimental: {
-    // Enable server actions
-  },
-
-  // Headers for caching
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, s-maxage=300, stale-while-revalidate=60',
-          },
-        ],
-      },
-    ];
-  },
+  // Trailing slashes for static hosting
+  trailingSlash: true,
 };
 
 export default nextConfig;
