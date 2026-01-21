@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Article } from '@/types';
-import { useSettings } from '@/store';
+import { useSettings, useStore } from '@/store';
 import { useArticleContent } from '@/hooks/useArticleContent';
 
 interface ArticleReaderProps {
@@ -12,8 +12,10 @@ interface ArticleReaderProps {
 
 export default function ArticleReader({ article, onClose }: ArticleReaderProps) {
   const settings = useSettings();
+  const { addBookmark, removeBookmark, isBookmarked } = useStore();
   const isNewspaperMode = settings.viewMode === 'newspaper';
   const [showFullArticle, setShowFullArticle] = useState(false);
+  const bookmarked = isBookmarked(article.id);
 
   // Fetch full article content when user requests it
   const { content, isLoading, isError } = useArticleContent(
@@ -46,6 +48,14 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
 
   const handleOpenExternal = () => {
     window.open(article.originalLink || article.link, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleBookmark = () => {
+    if (bookmarked) {
+      removeBookmark(article.id);
+    } else {
+      addBookmark(article);
+    }
   };
 
   // Render article content (either preview or full)
@@ -119,7 +129,20 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
             <span className="text-sm uppercase tracking-wider">Back to Front Page</span>
           </button>
 
-          <span className="text-xs text-gray-500 uppercase tracking-wider">{article.sourceName}</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBookmark}
+              className={`p-2 rounded transition-colors ${
+                bookmarked ? 'text-yellow-600' : 'text-gray-500 hover:text-black'
+              }`}
+              title={bookmarked ? 'Remove from saved' : 'Save for later'}
+            >
+              <svg className="w-5 h-5" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
+            <span className="text-xs text-gray-500 uppercase tracking-wider">{article.sourceName}</span>
+          </div>
         </div>
 
         {/* Article Content */}
@@ -213,7 +236,20 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
           <span className="text-sm">Back to channel</span>
         </button>
 
-        <span className="text-xs text-gray-500">{article.sourceName}</span>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleBookmark}
+            className={`p-2 rounded transition-colors ${
+              bookmarked ? 'text-yellow-500' : 'text-gray-500 hover:text-white'
+            }`}
+            title={bookmarked ? 'Remove from saved' : 'Save for later'}
+          >
+            <svg className="w-5 h-5" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
+          <span className="text-xs text-gray-500">{article.sourceName}</span>
+        </div>
       </div>
 
       {/* Article Content */}

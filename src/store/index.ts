@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
-import { AppState, Settings, Article, Channel, ViewMode } from '@/types';
+import { AppState, Settings, Article, Channel, ViewMode, BookmarkedArticle } from '@/types';
 import { DEFAULT_CHANNELS } from '@/lib/news/sources';
 
 const DEFAULT_SETTINGS: Settings = {
@@ -31,6 +31,10 @@ export const useStore = create<AppState>()(
       lastFetch: {},
 
       selectedArticle: null,
+
+      // Bookmarks and read tracking
+      bookmarks: [],
+      readArticles: [],
 
       settings: DEFAULT_SETTINGS,
 
@@ -113,6 +117,10 @@ export const useStore = create<AppState>()(
 
       selectArticle: (article: Article | null) => {
         set({ selectedArticle: article });
+        // Mark as read when selecting
+        if (article) {
+          get().markAsRead(article.id);
+        }
       },
 
       updateSettings: (newSettings: Partial<Settings>) => {
@@ -154,6 +162,46 @@ export const useStore = create<AppState>()(
       setTransitioning: (transitioning: boolean) => {
         set({ isTransitioning: transitioning });
       },
+
+      // Bookmark actions
+      addBookmark: (article: Article) => {
+        const { bookmarks } = get();
+        if (bookmarks.some((b) => b.id === article.id)) return;
+
+        const bookmarkedArticle: BookmarkedArticle = {
+          ...article,
+          bookmarkedAt: Date.now(),
+        };
+
+        set((state) => ({
+          bookmarks: [bookmarkedArticle, ...state.bookmarks],
+        }));
+      },
+
+      removeBookmark: (articleId: string) => {
+        set((state) => ({
+          bookmarks: state.bookmarks.filter((b) => b.id !== articleId),
+        }));
+      },
+
+      isBookmarked: (articleId: string) => {
+        return get().bookmarks.some((b) => b.id === articleId);
+      },
+
+      // Read tracking
+      markAsRead: (articleId: string) => {
+        const { readArticles } = get();
+        if (readArticles.includes(articleId)) return;
+
+        set((state) => ({
+          // Keep only last 500 read articles to prevent storage bloat
+          readArticles: [articleId, ...state.readArticles].slice(0, 500),
+        }));
+      },
+
+      isRead: (articleId: string) => {
+        return get().readArticles.includes(articleId);
+      },
     }),
     {
       name: 'feelsonretro-storage',
@@ -163,6 +211,8 @@ export const useStore = create<AppState>()(
         currentChannel: state.currentChannel,
         customChannels: state.customChannels,
         settings: state.settings,
+        bookmarks: state.bookmarks,
+        readArticles: state.readArticles,
       }),
     }
   )
@@ -187,3 +237,5 @@ export const useArticles = (channel: number) =>
 export const useIsLoading = () => useStore((state) => state.isLoading);
 export const useError = () => useStore((state) => state.error);
 export const useSelectedArticle = () => useStore((state) => state.selectedArticle);
+export const useBookmarks = () => useStore((state) => state.bookmarks);
+export const useReadArticles = () => useStore((state) => state.readArticles);

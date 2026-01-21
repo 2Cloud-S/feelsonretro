@@ -13,6 +13,11 @@ export interface Article {
   author?: string;
 }
 
+// Bookmarked article with timestamp
+export interface BookmarkedArticle extends Article {
+  bookmarkedAt: number;
+}
+
 // Channel Types
 export interface Channel {
   number: number;
@@ -69,6 +74,12 @@ export interface AppState {
   // Selected article
   selectedArticle: Article | null;
 
+  // Bookmarks
+  bookmarks: BookmarkedArticle[];
+
+  // Read articles (for tracking)
+  readArticles: string[];
+
   // Settings
   settings: Settings;
 
@@ -86,6 +97,15 @@ export interface AppState {
   addCustomChannel: (name: string, url: string) => void;
   removeCustomChannel: (number: number) => void;
   setTransitioning: (transitioning: boolean) => void;
+
+  // Bookmark actions
+  addBookmark: (article: Article) => void;
+  removeBookmark: (articleId: string) => void;
+  isBookmarked: (articleId: string) => boolean;
+
+  // Read tracking
+  markAsRead: (articleId: string) => void;
+  isRead: (articleId: string) => boolean;
 }
 
 // API Response Types

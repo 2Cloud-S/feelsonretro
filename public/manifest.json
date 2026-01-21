@@ -1,0 +1,19 @@
+{
+  "name": "FeelsOnRetro",
+  "short_name": "FeelsOnRetro",
+  "description": "A retro-styled news reader with TV channel switching and newspaper views",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["news", "entertainment"],
+  "orientation": "any"
+}
