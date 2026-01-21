@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Article } from '@/types';
 import { useSettings } from '@/store';
+import { useArticleContent } from '@/hooks/useArticleContent';
 
 interface ArticleReaderProps {
   article: Article;
@@ -11,6 +13,12 @@ interface ArticleReaderProps {
 export default function ArticleReader({ article, onClose }: ArticleReaderProps) {
   const settings = useSettings();
   const isNewspaperMode = settings.viewMode === 'newspaper';
+  const [showFullArticle, setShowFullArticle] = useState(false);
+
+  // Fetch full article content when user requests it
+  const { content, isLoading, isError } = useArticleContent(
+    showFullArticle ? (article.originalLink || article.link) : null
+  );
 
   const formatDate = (dateStr: string) => {
     try {
@@ -29,7 +37,70 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
   };
 
   const handleReadFull = () => {
+    if (!showFullArticle) {
+      setShowFullArticle(true);
+    } else {
+      window.open(article.originalLink || article.link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleOpenExternal = () => {
     window.open(article.originalLink || article.link, '_blank', 'noopener,noreferrer');
+  };
+
+  // Render article content (either preview or full)
+  const renderContent = () => {
+    if (showFullArticle) {
+      if (isLoading) {
+        return (
+          <div className={`${isNewspaperMode ? 'text-gray-600' : 'text-gray-400'} text-center py-8`}>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-current border-t-transparent mb-4"></div>
+            <p>Loading full article...</p>
+          </div>
+        );
+      }
+
+      if (isError || !content) {
+        return (
+          <div className={`${isNewspaperMode ? 'text-gray-800' : 'text-gray-300'} text-lg leading-relaxed mb-8`}>
+            <p className="drop-cap">{article.description}</p>
+            <div className={`mt-6 p-4 rounded ${isNewspaperMode ? 'bg-yellow-50 border border-yellow-200' : 'bg-yellow-900/20 border border-yellow-700'}`}>
+              <p className={`text-sm ${isNewspaperMode ? 'text-yellow-800' : 'text-yellow-400'}`}>
+                Unable to load full article. The website may be blocking direct access.
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      // Show full article content
+      const paragraphs = content.textContent.split('\n\n').filter(p => p.trim());
+
+      return (
+        <div className={`${isNewspaperMode ? 'text-gray-800' : 'text-gray-300'} text-lg leading-relaxed mb-8 font-serif`}>
+          {content.author && (
+            <p className={`text-sm ${isNewspaperMode ? 'text-gray-600' : 'text-gray-500'} mb-4 italic`}>
+              By {content.author}
+            </p>
+          )}
+          {paragraphs.map((paragraph, index) => (
+            <p key={index} className={index === 0 ? 'drop-cap mb-4' : 'mb-4'}>
+              {paragraph}
+            </p>
+          ))}
+          {paragraphs.length === 0 && (
+            <p className="drop-cap">{article.description}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Show preview only
+    return (
+      <div className={`${isNewspaperMode ? 'text-gray-800' : 'text-gray-300'} text-lg leading-relaxed mb-8 ${isNewspaperMode ? 'font-serif' : ''}`}>
+        <p className="drop-cap">{article.description}</p>
+      </div>
+    );
   };
 
   // Newspaper mode styling
@@ -72,10 +143,10 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
           </div>
 
           {/* Image */}
-          {article.image && (
+          {(article.image || (showFullArticle && content?.image)) && (
             <div className="w-full mb-6 overflow-hidden">
               <img
-                src={article.image}
+                src={content?.image || article.image}
                 alt=""
                 className="w-full h-auto object-cover"
               />
@@ -83,22 +154,44 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
             </div>
           )}
 
-          {/* Description */}
-          <div className="text-gray-800 text-lg leading-relaxed mb-8 font-serif">
-            <p className="drop-cap">{article.description}</p>
-          </div>
+          {/* Content */}
+          {renderContent()}
 
-          {/* Read full article button */}
+          {/* Action buttons */}
           <div className="text-center py-8 border-t-2 border-black">
-            <p className="text-gray-600 mb-4">
-              Continue reading the full article on the original source
-            </p>
-            <button
-              onClick={handleReadFull}
-              className="px-6 py-3 bg-black text-white font-bold uppercase tracking-wider hover:bg-gray-800 transition-colors"
-            >
-              Read Full Article
-            </button>
+            {!showFullArticle ? (
+              <>
+                <p className="text-gray-600 mb-4">
+                  View the complete article
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={handleReadFull}
+                    className="px-6 py-3 bg-black text-white font-bold uppercase tracking-wider hover:bg-gray-800 transition-colors"
+                  >
+                    Load Full Article
+                  </button>
+                  <button
+                    onClick={handleOpenExternal}
+                    className="px-6 py-3 border-2 border-black text-black font-bold uppercase tracking-wider hover:bg-gray-100 transition-colors"
+                  >
+                    Open on Source Site ↗
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-4">
+                  {isError ? 'Read the original article' : 'View on the source website'}
+                </p>
+                <button
+                  onClick={handleOpenExternal}
+                  className="px-6 py-3 bg-black text-white font-bold uppercase tracking-wider hover:bg-gray-800 transition-colors"
+                >
+                  Open Original Article ↗
+                </button>
+              </>
+            )}
           </div>
         </article>
       </div>
@@ -126,10 +219,10 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
       {/* Article Content */}
       <article className="max-w-2xl mx-auto">
         {/* Image */}
-        {article.image && (
+        {(article.image || (showFullArticle && content?.image)) && (
           <div className="w-full h-64 mb-6 overflow-hidden rounded-lg bg-gray-800">
             <img
-              src={article.image}
+              src={content?.image || article.image}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -152,22 +245,44 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
           )}
         </div>
 
-        {/* Description */}
-        <div className="text-gray-300 text-lg leading-relaxed mb-8">
-          <p className="drop-cap">{article.description}</p>
-        </div>
+        {/* Content */}
+        {renderContent()}
 
-        {/* Read full article button */}
+        {/* Action buttons */}
         <div className="text-center py-8 border-t border-gray-700">
-          <p className="text-gray-500 mb-4">
-            Continue reading the full article on the original source
-          </p>
-          <button
-            onClick={handleReadFull}
-            className="retro-button"
-          >
-            Read Full Article
-          </button>
+          {!showFullArticle ? (
+            <>
+              <p className="text-gray-500 mb-4">
+                View the complete article
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={handleReadFull}
+                  className="retro-button"
+                >
+                  Load Full Article
+                </button>
+                <button
+                  onClick={handleOpenExternal}
+                  className="px-4 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-800 transition-colors"
+                >
+                  Open on Source Site ↗
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-4">
+                {isError ? 'Read the original article' : 'View on the source website'}
+              </p>
+              <button
+                onClick={handleOpenExternal}
+                className="retro-button"
+              >
+                Open Original Article ↗
+              </button>
+            </>
+          )}
         </div>
       </article>
     </div>
