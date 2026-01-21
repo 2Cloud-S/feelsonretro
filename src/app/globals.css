@@ -1,26 +1,551 @@
 @import "tailwindcss";
 
+/* ========================================
+   RETRO NEWS - Global Styles
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base colors */
+  --background: #1a1a1a;
+  --foreground: #e0e0e0;
+
+  /* CRT Theme Colors */
+  --crt-green: #33ff33;
+  --crt-green-dim: #1a8c1a;
+  --crt-green-glow: rgba(51, 255, 51, 0.5);
+
+  --crt-amber: #ffb000;
+  --crt-amber-dim: #8c6000;
+  --crt-amber-glow: rgba(255, 176, 0, 0.5);
+
+  /* TV Cabinet Colors */
+  --tv-wood: #8b4513;
+  --tv-wood-light: #a0522d;
+  --tv-wood-dark: #5d2f0c;
+
+  /* Newspaper Colors */
+  --newspaper-bg: #f4f1ea;
+  --newspaper-text: #1a1a1a;
+  --newspaper-heading: #000000;
+  --newspaper-accent: #8b0000;
+
+  /* UI Colors */
+  --button-bg: #333333;
+  --button-hover: #444444;
+  --channel-display: #ff0000;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-crt-green: var(--crt-green);
+  --color-crt-amber: var(--crt-amber);
+  --color-tv-wood: var(--tv-wood);
+  --color-newspaper-bg: var(--newspaper-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ========================================
+   FONTS - Retro Typography
+   ======================================== */
+
+@font-face {
+  font-family: 'VT323';
+  src: url('https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('https://fonts.gstatic.com/s/pressstart2p/v15/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'VT323', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   CRT SCREEN EFFECTS
+   ======================================== */
+
+.crt-screen {
+  position: relative;
+  background: #111;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 100px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(0, 255, 0, 0.1);
+}
+
+/* Scanline Effect */
+.crt-scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* RGB Pixel Effect */
+.crt-rgb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.02),
+    rgba(255, 0, 0, 0.02) 1px,
+    rgba(0, 255, 0, 0.02) 1px,
+    rgba(0, 255, 0, 0.02) 2px,
+    rgba(0, 0, 255, 0.02) 2px,
+    rgba(0, 0, 255, 0.02) 3px
+  );
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Screen Curvature */
+.crt-curve {
+  border-radius: 50% / 5%;
+}
+
+/* Screen Flicker Animation */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.9; }
+  94% { opacity: 1; }
+  97% { opacity: 0.95; }
+}
+
+.crt-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+/* Phosphor Glow - Green */
+.theme-green {
+  color: var(--crt-green);
+  text-shadow:
+    0 0 5px var(--crt-green-glow),
+    0 0 10px var(--crt-green-glow);
+}
+
+/* Phosphor Glow - Amber */
+.theme-amber {
+  color: var(--crt-amber);
+  text-shadow:
+    0 0 5px var(--crt-amber-glow),
+    0 0 10px var(--crt-amber-glow);
+}
+
+/* ========================================
+   STATIC NOISE EFFECT
+   ======================================== */
+
+@keyframes static-noise {
+  0%, 100% { background-position: 0 0; }
+  10% { background-position: -5% -10%; }
+  20% { background-position: -15% 5%; }
+  30% { background-position: 7% -25%; }
+  40% { background-position: 20% 25%; }
+  50% { background-position: -25% 10%; }
+  60% { background-position: 15% 5%; }
+  70% { background-position: 0% 15%; }
+  80% { background-position: 25% 35%; }
+  90% { background-position: -10% 10%; }
+}
+
+.static-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: static-noise 0.3s steps(10) infinite;
+  opacity: 0.7;
+  z-index: 100;
+}
+
+/* ========================================
+   CHANNEL DISPLAY
+   ======================================== */
+
+.channel-display {
+  font-family: 'VT323', monospace;
+  font-size: 3rem;
+  color: var(--crt-green);
+  text-shadow:
+    0 0 10px var(--crt-green),
+    0 0 20px var(--crt-green),
+    0 0 40px var(--crt-green);
+}
+
+/* LED Display Style */
+.led-display {
+  font-family: 'Press Start 2P', cursive;
+  color: #ff0000;
+  text-shadow:
+    0 0 5px #ff0000,
+    0 0 10px #ff0000;
+  letter-spacing: 2px;
+}
+
+/* ========================================
+   TV CABINET STYLES
+   ======================================== */
+
+.tv-cabinet {
+  background: linear-gradient(
+    135deg,
+    var(--tv-wood-light) 0%,
+    var(--tv-wood) 50%,
+    var(--tv-wood-dark) 100%
+  );
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Wood Grain Texture */
+.wood-grain {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+}
+
+/* TV Buttons */
+.tv-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+  border: 2px solid #333;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tv-button:hover {
+  background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+}
+
+.tv-button:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Channel Dial */
+.channel-dial {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c0c0c0, #808080);
+  border: 4px solid #666;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  cursor: grab;
+  position: relative;
+}
+
+.channel-dial::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 20px;
+  background: #333;
+  border-radius: 2px;
+}
+
+.channel-dial:active {
+  cursor: grabbing;
+}
+
+/* Speaker Grille */
+.speaker-grille {
+  background: repeating-linear-gradient(
+    0deg,
+    #2a2a2a,
+    #2a2a2a 2px,
+    #1a1a1a 2px,
+    #1a1a1a 4px
+  );
+  border-radius: 5px;
+}
+
+/* ========================================
+   NEWSPAPER STYLES
+   ======================================== */
+
+.newspaper-layout {
+  background: var(--newspaper-bg);
+  color: var(--newspaper-text);
+  font-family: Georgia, 'Times New Roman', serif;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* Paper Texture */
+.paper-texture {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5'/%3E%3CfeDiffuseLighting lighting-color='%23f4f1ea' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)'/%3E%3C/svg%3E");
+}
+
+/* Masthead */
+.newspaper-masthead {
+  text-align: center;
+  border-bottom: 3px double #000;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.newspaper-masthead h1 {
+  font-family: 'Old English Text MT', 'Times New Roman', serif;
+  font-size: 4rem;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--newspaper-heading);
+  margin: 0;
+}
+
+/* Date Line */
+.newspaper-dateline {
+  font-style: italic;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #000;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Article Grid */
+.newspaper-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .newspaper-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .newspaper-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Headline Article */
+.headline-article {
+  grid-column: span 3;
+}
+
+@media (max-width: 1024px) {
+  .headline-article {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .headline-article {
+    grid-column: span 1;
+  }
+}
+
+.headline-article h2 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--newspaper-heading);
+}
+
+/* Article Text */
+.article-text {
+  text-align: justify;
+  hyphens: auto;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Drop Cap */
+.drop-cap::first-letter {
+  float: left;
+  font-size: 4rem;
+  line-height: 0.8;
+  padding-right: 0.5rem;
+  padding-top: 0.1rem;
+  font-weight: bold;
+  color: var(--newspaper-heading);
+}
+
+/* Column Divider */
+.column-divider {
+  border-right: 1px solid #ccc;
+  padding-right: 1.5rem;
+}
+
+/* Section Header */
+.section-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border-bottom: 2px solid #000;
+  padding-bottom: 0.25rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+/* ========================================
+   ARTICLE READER STYLES
+   ======================================== */
+
+.article-reader {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--newspaper-text);
+  background: var(--newspaper-bg);
+}
+
+.article-reader h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  color: var(--newspaper-heading);
+}
+
+.article-reader .meta {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.retro-button {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.75rem;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+  border: 3px solid #666;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow:
+    0 4px 0 #1a1a1a,
+    0 6px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s ease;
+}
+
+.retro-button:hover {
+  background: linear-gradient(180deg, #5a5a5a 0%, #3a3a3a 100%);
+}
+
+.retro-button:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #1a1a1a,
+    0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Glowing Text */
+.glow-text {
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 20px currentColor;
+}
+
+/* ========================================
+   ACCESSIBILITY - Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker,
+  .static-noise {
+    animation: none;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 6px;
+  border: 2px solid #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

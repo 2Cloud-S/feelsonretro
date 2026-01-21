@@ -1,0 +1,21 @@
+# Cloudflare Pages configuration
+name = "feelsonretro"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV Namespace for caching (create this in Cloudflare dashboard)
+# Uncomment and add your namespace ID after creating it:
+# [[kv_namespaces]]
+# binding = "NEWS_CACHE"
+# id = "your-kv-namespace-id"
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Pages-specific settings
+[env.production]
+name = "feelsonretro-production"
+
+[env.preview]
+name = "feelsonretro-preview"
